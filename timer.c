@@ -3,6 +3,7 @@
 
 #include "timer.h"
 #include "event.h"
+#include "encoder.h"
 
 uint16_t jiffies = 0;
 
@@ -80,6 +81,8 @@ void timer_isr_100hz(void)
 
 void timer_isr_10hz(void)
 {
+	encoder_tick_10hz();
+
 	event_t ev;
 	ev.type = EV_TICK_10HZ;
 	event_push(&ev);

@@ -8,7 +8,7 @@ enum evtype {
 	EV_TICK_1HZ,
 	EV_TICK_10HZ,
 	EV_TICK_100HZ,
-	EV_ERROR,
+	EV_ENCODER,
 	EV_UART,
 };
 
@@ -24,16 +24,9 @@ struct ev_tick_100hz {
 	enum evtype type;
 };
 
-enum error_code {
-	ERROR_T_MAX         = 0x01,
-	ERROR_DT_MIN        = 0x02,
-	ERROR_FAN_SPEED     = 0x04,
-	ERROR_CASEFAN_SPEED = 0x08,
-};
-
-struct ev_error {
+struct ev_encoder {
 	enum evtype type;
-	uint8_t error_mask;
+	int32_t speed;
 };
 
 struct ev_uart {
@@ -46,7 +39,7 @@ typedef union {
 	struct ev_tick_1hz tick_1hz;
 	struct ev_tick_10hz tick_10hz;
 	struct ev_tick_100hz tick_100hz;
-	struct ev_error error;
+	struct ev_encoder encoder;
 	struct ev_uart uart;
 } event_t;
 

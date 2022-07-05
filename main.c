@@ -5,18 +5,19 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <avr/wdt.h>
+#include <inttypes.h>
 
 #include "uart.h"
 #include "event.h"
 #include "timer.h"
 #include "cmd.h"
+#include "encoder.h"
 
 void motor_init(void);
 void motor_set(int speed);
 void motor_tick(void);
 void cmd_handle_char(uint8_t c);
 
-volatile int edges = 0;
 
 int main(void)
 {
@@ -25,9 +26,7 @@ int main(void)
 	uart_enable();
 	timer_init();
 	motor_init();
-
-	PCICR |= (1<<PCIE2);
-	PCMSK2 |= (1<<PCINT22);
+	encoder_init();
 
 	sei();
 
@@ -40,25 +39,20 @@ int main(void)
 		}
 		
 		if(ev.type == EV_TICK_1HZ) {
-			printf("edges: %d\n", edges);
-			edges = 0;
 		}
 
 		if(ev.type == EV_TICK_10HZ) {
-			//printf("t");
 		}
 
 		if(ev.type == EV_TICK_100HZ) {
 			motor_tick();
 		}
+		
+		if(ev.type == EV_ENCODER) {
+			printf("%" PRId32 "\n", ev.encoder.speed);
+		}
 	}
 
-}
-
-
-ISR(PCINT2_vect)
-{
-	edges ++;
 }
 
 

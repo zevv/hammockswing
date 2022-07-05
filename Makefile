@@ -18,6 +18,7 @@ SRC		+= uart.c
 SRC		+= event.c
 SRC		+= timer.c
 SRC		+= cmd.c
+SRC		+= encoder.c
 
 #
 # Special options for each target
