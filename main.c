@@ -13,6 +13,7 @@
 
 void motor_init(void);
 void motor_set(int speed);
+void motor_tick(void);
 void cmd_handle_char(uint8_t c);
 
 int main(void)
@@ -37,6 +38,10 @@ int main(void)
 
 		if(ev.type == EV_TICK_10HZ) {
 			printf("t");
+		}
+
+		if(ev.type == EV_TICK_100HZ) {
+			motor_tick();
 		}
 	}
 
@@ -68,9 +73,26 @@ void motor_init(void)
 }
 
 
+int speed_req = 0;
+int speed = 0;
+
 void motor_set(int speed)
 {
-	OCR1A = speed;
+	speed_req = speed;
+}
+
+
+void motor_tick(void)
+{
+	if(speed_req > speed) {
+		speed ++;
+		OCR1A = speed;
+	}
+
+	if(speed_req < speed) {
+		speed --;
+		OCR1A = speed;
+	}
 }
 
 

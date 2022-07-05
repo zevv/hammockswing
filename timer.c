@@ -72,6 +72,9 @@ void timer_isr_1000hz(void)
 
 void timer_isr_100hz(void)
 {
+	event_t ev;
+	ev.type = EV_TICK_100HZ;
+	event_push(&ev);
 }
 
 

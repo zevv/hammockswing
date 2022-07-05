@@ -34,9 +34,11 @@ default: $(BIN)
 #############################################################################
 
 OBJS		:= $(subst .c,.o, $(SRC))
+DEPS		:= $(subst .c,.d, $(SRC))
 
 CFLAGS  	+= -g -I. -I..
 CFLAGS  	+= -Wall -Werror
+CFLAGS  	+= -MMD
 LDFLAGS 	+= -g
 CFLAGS  	+= -DNAME=\"$(NAME)\" -DVERSION=\"$(VERSION)\"
 ADFLAGS 	+= -p m328p -c avrispv2 -P usb -V -F -s
@@ -77,7 +79,7 @@ $(BIN): $(OBJS)
 clean:
 	$(P) " [CLEAN]" 
 	$(E) rm -f *.o linux/*.o avr/*.o
-	$(E) rm -f $(BIN) *.elf *.ihx tags $(BIN).elf .depend *.zip *.bat
+	$(E) rm -f $(BIN) *.elf *.ihx tags $(BIN).elf *.zip *.bat
 
 .PHONY: tags
 tags:
@@ -88,11 +90,6 @@ $(FHEX) $(EHEX): $(BIN)
 	$(P) " [OBJCP] $@"
 	$(E) $(OBJCOPY) -j .text -j .data -O ihex $(BIN) $(FHEX)
 	$(E) $(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O ihex $(BIN) $(EHEX)
-
-.PHONY: .depend
-.depend:
-	$(P) " [MKDEP]"
-	$(E) makedepend -f - -- $(CFLAGS) -- $(SRC) > $@ 2>/dev/null
 
 install-flash: $(FHEX) $(EHEX)
 	$(P) " [INST ] $^"
@@ -136,4 +133,4 @@ $(ZIPSRC): clean
 versions:
 	git log | grep commit | awk '{print $$2}' | xargs git describe
 
--include .depend
+-include $(DEPS)

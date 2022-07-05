@@ -7,6 +7,7 @@
 enum evtype {
 	EV_TICK_1HZ,
 	EV_TICK_10HZ,
+	EV_TICK_100HZ,
 	EV_ERROR,
 	EV_UART,
 };
@@ -16,6 +17,10 @@ struct ev_tick_1hz {
 };
 
 struct ev_tick_10hz {
+	enum evtype type;
+};
+
+struct ev_tick_100hz {
 	enum evtype type;
 };
 
@@ -40,6 +45,7 @@ typedef union {
 	enum evtype type;
 	struct ev_tick_1hz tick_1hz;
 	struct ev_tick_10hz tick_10hz;
+	struct ev_tick_100hz tick_100hz;
 	struct ev_error error;
 	struct ev_uart uart;
 } event_t;
