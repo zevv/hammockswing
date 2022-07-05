@@ -16,28 +16,36 @@ void motor_set(int speed);
 void motor_tick(void);
 void cmd_handle_char(uint8_t c);
 
+volatile int edges = 0;
+
 int main(void)
 {
 
 	uart_init(UART_BAUD(9600), 1);
 	uart_enable();
-
 	timer_init();
-
 	motor_init();
+
+	PCICR |= (1<<PCIE2);
+	PCMSK2 |= (1<<PCINT22);
 
 	sei();
 
 	for(;;) {
 		event_t ev;
 		event_wait(&ev);
-		
+
 		if(ev.type == EV_UART) {
 			cmd_handle_char(ev.uart.c);
 		}
+		
+		if(ev.type == EV_TICK_1HZ) {
+			printf("edges: %d\n", edges);
+			edges = 0;
+		}
 
 		if(ev.type == EV_TICK_10HZ) {
-			printf("t");
+			//printf("t");
 		}
 
 		if(ev.type == EV_TICK_100HZ) {
@@ -47,6 +55,11 @@ int main(void)
 
 }
 
+
+ISR(PCINT2_vect)
+{
+	edges ++;
+}
 
 
 

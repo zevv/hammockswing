@@ -17,6 +17,11 @@ struct ringbuffer_t {
 
 static volatile struct ringbuffer_t rb = { 0, 0 };
 
+
+static int uart_putchar(char c, FILE *stream);
+static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
+
+
 /*
  * Initialize the UART. 
  */
@@ -34,6 +39,8 @@ void uart_init(uint16_t baudrate_divider, uint8_t stop_bits)
 	/* Enable receiver and transmitter and rx interrupts */
 
 	UCSR0B = (1<<RXCIE0) | (1<<RXEN0) | (1<<TXEN0);	
+
+	stdout = &mystdout;
 }
 
 
@@ -89,6 +96,12 @@ ISR(USART_UDRE_vect)
 	}
 }
 
+
+static int uart_putchar(char c, FILE *stream)
+{
+	uart_tx(c);
+	return 0;
+}
 
 /*
  * End
