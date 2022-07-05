@@ -1,4 +1,4 @@
 *.ihx
 *.elf
 *.o
-.depend
+*.d
