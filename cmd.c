@@ -4,17 +4,17 @@
 
 #include "cmd.h"
 #include "uart.h"
+#include "motor.h"
 
 struct cmd_handler {
 	char cmd;
 	void (*fn)(uint8_t, char **);
 };
 
-void cmd_motor(uint8_t argc, char **argv);
 
 
 struct cmd_handler cmd_handler_list[] = {
-	{ 'm', cmd_motor },
+	{ 'm', motor_cmd },
 };
 
 #define CMD_COUNT (sizeof(cmd_handler_list) / sizeof(cmd_handler_list[0]))

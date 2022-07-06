@@ -19,6 +19,7 @@ SRC		+= event.c
 SRC		+= timer.c
 SRC		+= cmd.c
 SRC		+= encoder.c
+SRC		+= motor.c
 
 #
 # Special options for each target

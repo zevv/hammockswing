@@ -12,10 +12,8 @@
 #include "timer.h"
 #include "cmd.h"
 #include "encoder.h"
+#include "motor.h"
 
-void motor_init(void);
-void motor_set(int speed);
-void motor_tick(void);
 void cmd_handle_char(uint8_t c);
 
 
@@ -45,7 +43,6 @@ int main(void)
 		}
 
 		if(ev.type == EV_TICK_100HZ) {
-			motor_tick();
 		}
 		
 		if(ev.type == EV_ENCODER) {
@@ -53,62 +50,6 @@ int main(void)
 		}
 	}
 
-}
-
-
-
-void motor_init(void)
-{
-
-	/* Timer 1: ICR1 is top, OCR1[AB] are PWM values */
-
-	TCCR1A = (1<<WGM11);
-	TCCR1B = (1<<WGM12) | (1<<WGM13) | (1<<CS10);
-	ICR1 = 64;
-
-	/* Set PWM pins OC1A/OC1B/OC2B as output */
-
-	DDRB |= (1<<PB1) | (1<<PB2);
-
-	/* Set FAN pulse pins to input, pullup enabled */
-
-	PORTD |= (1<<PD7) | (1<<PD6);
-
-	/* Set PWM */
-
-	TCCR1A |= (1<<COM1A1);
-}
-
-
-int speed_req = 0;
-int speed = 0;
-
-void motor_set(int speed)
-{
-	speed_req = speed;
-}
-
-
-void motor_tick(void)
-{
-	if(speed_req > speed) {
-		speed ++;
-		OCR1A = speed;
-	}
-
-	if(speed_req < speed) {
-		speed --;
-		OCR1A = speed;
-	}
-}
-
-
-void cmd_motor(uint8_t argc, char **argv)
-{
-	if(argc > 0) {
-		int v = atoi(argv[0]);
-		motor_set(v);
-	}
 }
 
 

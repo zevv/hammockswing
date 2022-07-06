@@ -4,6 +4,7 @@
 #include "timer.h"
 #include "event.h"
 #include "encoder.h"
+#include "motor.h"
 
 uint16_t jiffies = 0;
 
@@ -73,6 +74,8 @@ void timer_isr_1000hz(void)
 
 void timer_isr_100hz(void)
 {
+	motor_tick_100hz();
+
 	event_t ev;
 	ev.type = EV_TICK_100HZ;
 	event_push(&ev);
