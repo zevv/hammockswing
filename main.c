@@ -28,6 +28,15 @@ int main(void)
 
 	sei();
 
+	printf("---\n");
+
+	int state = 0;
+	int n = 0;
+	int t = 0;
+
+	//int high = 64;
+	//int low = 10;
+
 	for(;;) {
 		event_t ev;
 		event_wait(&ev);
@@ -44,12 +53,46 @@ int main(void)
 
 		if(ev.type == EV_TICK_100HZ) {
 		}
-		
+
 		if(ev.type == EV_ENCODER) {
-			printf("%" PRId32 "\n", ev.encoder.speed);
+
+			t += 1;
+
+			n += abs(ev.encoder.speed);
+			printf("%d %d %d\n", state, n, (int)ev.encoder.speed);
+
+
+			if(state == 0) {
+
+				if(n > 10 && ev.encoder.speed == 0) {
+					motor_set(60);
+					n = 0;
+					t = 0;
+					state = 1;
+				}
+			}
+
+			else if(state == 1) {
+
+				if(n > 10 && ev.encoder.speed <= 0) {
+					motor_set(0);
+					n = 0;
+					t = 0;
+					state = 0;
+				}
+
+				if(t > 10) {
+					motor_set(0);
+				}
+			}
+			
+
 		}
 	}
 
 }
 
+void motor_pid(uint8_t argc, char **argv)
+{
+}
 

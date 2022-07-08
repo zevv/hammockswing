@@ -11,10 +11,12 @@ struct cmd_handler {
 	void (*fn)(uint8_t, char **);
 };
 
+void motor_pid(uint8_t argc, char **argv);
 
 
 struct cmd_handler cmd_handler_list[] = {
 	{ 'm', motor_cmd },
+	{ 'p', motor_pid },
 };
 
 #define CMD_COUNT (sizeof(cmd_handler_list) / sizeof(cmd_handler_list[0]))

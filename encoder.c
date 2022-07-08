@@ -1,5 +1,6 @@
 
 #include <avr/interrupt.h>
+#include <stdio.h>
 
 #include "encoder.h"
 #include "event.h"
@@ -19,7 +20,6 @@ void encoder_init(void)
 	PCICR |= (1<<PCIE2);
 	PCMSK2 |= (1<<PCINT22);
 
-
 	/* Enable power for hall sensor */
 
 	DDRB |= (1<<PB2);
@@ -32,7 +32,7 @@ void encoder_tick_10hz(void)
 {
 	event_t ev;
 	ev.type = EV_ENCODER;
-	ev.encoder.speed = count * 10;
+	ev.encoder.speed = count;
 	event_push(&ev);
 
 	count = 0;
@@ -42,10 +42,12 @@ void encoder_tick_10hz(void)
 
 ISR(PCINT2_vect)
 {
-	if(PIND & (1<<PD7)) {
-		count ++;
-	} else {
-		count --;
+	if(PIND & (1<<PD6)) {
+		if(PIND & (1<<PD7)) {
+			count ++;
+		} else {
+			count --;
+		}
 	}
 }
 
