@@ -38,7 +38,7 @@ int main(void)
 	//int low = 10;
 	//
 	
-	motor_set(32);
+	motor_set(64);
 	state = 1;
 
 	for(;;) {
@@ -87,7 +87,7 @@ int main(void)
 
 			}
 				
-			if(abs(n) > 100) {
+			if(abs(n) > 120) {
 				motor_set(0);
 			}
 
