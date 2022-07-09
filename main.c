@@ -36,6 +36,10 @@ int main(void)
 
 	//int high = 64;
 	//int low = 10;
+	//
+	
+	motor_set(32);
+	state = 1;
 
 	for(;;) {
 		event_t ev;
@@ -64,8 +68,8 @@ int main(void)
 
 			if(state == 0) {
 
-				if(n > 10 && ev.encoder.speed == 0) {
-					motor_set(60);
+				if(t > 2 && n > 10 && ev.encoder.speed == 0) {
+					motor_set(62);
 					n = 0;
 					t = 0;
 					state = 1;
@@ -81,11 +85,11 @@ int main(void)
 					state = 0;
 				}
 
-				if(t > 10) {
-					motor_set(0);
-				}
 			}
-			
+				
+			if(abs(n) > 30) {
+				motor_set(0);
+			}
 
 		}
 	}
