@@ -19,6 +19,7 @@ void cmd_handle_char(uint8_t c);
 
 int main(void)
 {
+	wdt_disable();
 
 	uart_init(UART_BAUD(9600), 1);
 	uart_enable();
@@ -26,9 +27,20 @@ int main(void)
 	motor_init();
 	encoder_init();
 
+	wdt_disable();
+
 	sei();
 
 	printf("---\n");
+
+	uint8_t m = MCUSR;
+	if(m & (1<<WDRF))   printf("WDRF\n");
+	if(m & (1<<WDRF))   printf("WDRF\n");
+	if(m & (1<<BORF))   printf("BORF\n");
+	if(m & (1<<EXTRF))  printf("EXTR\n");
+	if(m & (1<<PORF))   printf("PORF\n");
+	MCUSR = 0;
+
 
 	int state = 0;
 	int n = 0;
@@ -46,7 +58,11 @@ int main(void)
 		event_wait(&ev);
 
 		if(ev.type == EV_UART) {
-			cmd_handle_char(ev.uart.c);
+			//cmd_handle_char(ev.uart.c);
+			if(ev.uart.c == 3) {
+				wdt_enable(WDTO_15MS);
+				for(;;);
+			}
 		}
 		
 		if(ev.type == EV_TICK_1HZ) {
@@ -63,7 +79,7 @@ int main(void)
 			t += 1;
 
 			n += abs(ev.encoder.speed);
-			printf("%d %d %d\n", state, n, (int)ev.encoder.speed);
+			printf("%d n=%d t=%d s=%d\n", state, n, t, (int)ev.encoder.speed);
 
 
 			if(state == 0) {
@@ -86,8 +102,12 @@ int main(void)
 				}
 
 			}
+
+			if(t > 16) {
+				motor_set(0);
+			}
 				
-			if(abs(n) > 120) {
+			if(abs(n) > 150) {
 				motor_set(0);
 			}
 

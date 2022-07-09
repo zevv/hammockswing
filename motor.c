@@ -24,24 +24,26 @@ int speed_req = 0;
 int speed = 0;
 
 
-void motor_set(int speed)
+void motor_set(int s)
 {
-//	speed_req = speed;
-	OCR1A = speed;
+	if(s > 0) {
+		speed_req = s;
+	} else {
+		speed_req = s;
+		speed = s;
+		OCR1A = s;
+	}
 }
 
 
 void motor_tick_100hz(void)
 {
-	if(speed_req > speed) {
-		speed ++;
-		OCR1A = speed;
-	}
+	int d = speed_req - speed;
+	if(d < -2) d = -2;
+	if(d >  2) d =  2;
 
-	if(speed_req < speed) {
-		speed --;
-		OCR1A = speed;
-	}
+	speed += d;
+	OCR1A = speed;
 }
 
 
