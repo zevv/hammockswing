@@ -69,7 +69,7 @@ int main(void)
 			if(state == 0) {
 
 				if(t > 2 && n > 10 && ev.encoder.speed == 0) {
-					motor_set(62);
+					motor_set(64);
 					n = 0;
 					t = 0;
 					state = 1;
@@ -87,7 +87,7 @@ int main(void)
 
 			}
 				
-			if(abs(n) > 30) {
+			if(abs(n) > 100) {
 				motor_set(0);
 			}
 
