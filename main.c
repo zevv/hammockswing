@@ -54,6 +54,8 @@ int main(void)
 	state = 1;
 
 	for(;;) {
+		wdt_reset();
+
 		event_t ev;
 		event_wait(&ev);
 
