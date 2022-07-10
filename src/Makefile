@@ -26,7 +26,7 @@ SRC		+= motor.c
 # 
 
 CROSS		+= avr-
-CFLAGS  	+= -DF_CPU=16384000
+CFLAGS  	+= -DF_CPU=8000000
 CFLAGS  	+= -mmcu=atmega328p -Os -I. -fshort-enums 
 CFLAGS  	+= -DVERSION_GIT=\"$(VERSION_GIT)$(GITMODIFIED)\"
 LDFLAGS 	+= -mmcu=atmega328p 

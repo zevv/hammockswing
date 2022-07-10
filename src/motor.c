@@ -17,6 +17,8 @@ void motor_init(void)
 
 	DDRB |= (1<<PB1) | (1<<PB2);
 	TCCR1A |= (1<<COM1A1);
+
+	DDRC |= (1<<PC2);
 }
 
 
@@ -36,6 +38,11 @@ void motor_set(int s)
 }
 
 
+void motor_tick_1000hz(void)
+{
+}
+
+
 void motor_tick_100hz(void)
 {
 	int d = speed_req - speed;
@@ -44,6 +51,12 @@ void motor_tick_100hz(void)
 
 	speed += d;
 	OCR1A = speed;
+
+	if(speed > 0) {
+		PORTC |= (1<<PC2);
+	} else {
+		PORTC &= ~(1<<PC2);
+	}
 }
 
 
