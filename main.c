@@ -14,14 +14,32 @@
 #include "encoder.h"
 #include "motor.h"
 
+static uint8_t go_to_bootloader __attribute__ ((section (".noinit")));
+
 void cmd_handle_char(uint8_t c);
+
+static void init_bootloader(void)
+		 __attribute__ ((naked))
+		 __attribute__ ((used))
+		 __attribute__ ((section (".init3")));
+
+static void init_bootloader(void)
+{
+	if(go_to_bootloader && (MCUSR & (1 << WDRF))) {
+		go_to_bootloader = 0;
+		MCUSR = (1<<EXTRF);
+		((void (*)(void))0x7f00)();
+		for(;;);
+	}
+}
 
 
 int main(void)
 {
+
 	wdt_disable();
 
-	uart_init(UART_BAUD(9600), 1);
+	uart_init(UART_BAUD(38400), 1);
 	uart_enable();
 	timer_init();
 	motor_init();
@@ -61,10 +79,9 @@ int main(void)
 
 		if(ev.type == EV_UART) {
 			//cmd_handle_char(ev.uart.c);
-			if(ev.uart.c == 3) {
-				wdt_enable(WDTO_15MS);
-				for(;;);
-			}
+			go_to_bootloader = 1;
+			wdt_enable(WDTO_250MS);
+			for (;;);
 		}
 		
 		if(ev.type == EV_TICK_1HZ) {

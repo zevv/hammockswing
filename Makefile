@@ -43,8 +43,8 @@ CFLAGS  	+= -Wall -Werror
 CFLAGS  	+= -MMD
 LDFLAGS 	+= -g
 CFLAGS  	+= -DNAME=\"$(NAME)\" -DVERSION=\"$(VERSION)\"
-ADFLAGS 	+= -p m328p -c avrispv2 -P usb -V -F -s
-#ADFLAGS 	+= -p m328p -c stk500v1 -P /dev/ttyUSB0 -V -F -s
+#ADFLAGS 	+= -p m328p -c avrispv2 -P usb -V -F -s
+ADFLAGS 	+= -p m328p -c stk500v1 -P /dev/ttyUSB0 -V -F
 
 ifdef ccache
 CROSS	:= ccache $(CROSS)
