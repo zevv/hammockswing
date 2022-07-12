@@ -117,7 +117,7 @@ int main(void)
 				motor_set(0);
 			}
 				
-			if(abs(n) > 200) {
+			if(abs(n) > 300) {
 				motor_set(0);
 			}
 
