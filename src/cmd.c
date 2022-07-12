@@ -38,7 +38,7 @@ void cmd_handle_char(uint8_t c)
 	if(c == '\b' || c == 127) {
 		if(l>0) {
 			buf[--l] = 0;
-			printf("\b \b");
+			//printf("\b \b");
 		}
 	}
 

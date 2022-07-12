@@ -1,5 +1,6 @@
 
 #include <avr/io.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "motor.h"
@@ -10,15 +11,13 @@ void motor_init(void)
 	/* Timer 1: ICR1 is top, OCR1[AB] are PWM values */
 
 	TCCR1A = (1<<WGM11);
-	TCCR1B = (1<<WGM12) | (1<<WGM13) | (1<<CS10);
+	TCCR1B = (1<<WGM12) | (1<<WGM13) | (1<<CS11);
 	ICR1 = 64;
 
 	/* Set PWM pin OC1A as output */
 
 	DDRB |= (1<<PB1) | (1<<PB2);
 	TCCR1A |= (1<<COM1A1);
-
-	DDRC |= (1<<PC2);
 }
 
 
@@ -28,35 +27,25 @@ int speed = 0;
 
 void motor_set(int s)
 {
-	if(s > 0) {
-		speed_req = s;
+	if(s == 0) {
+		speed_req = 0;
+		speed = 0;
+		OCR1A = 0;
 	} else {
 		speed_req = s;
-		speed = s;
-		OCR1A = s;
 	}
 }
 
-
-void motor_tick_1000hz(void)
-{
-}
 
 
 void motor_tick_100hz(void)
 {
 	int d = speed_req - speed;
-	if(d < -2) d = -2;
-	if(d >  2) d =  2;
-
+	if(d < -1) d = -1;
+	if(d >  1) d =  1;
 	speed += d;
-	OCR1A = speed;
 
-	if(speed > 0) {
-		PORTC |= (1<<PC2);
-	} else {
-		PORTC &= ~(1<<PC2);
-	}
+	OCR1A = speed;
 }
 
 

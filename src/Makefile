@@ -17,7 +17,7 @@ SRC		+= main.c
 SRC		+= uart.c
 SRC		+= event.c
 SRC		+= timer.c
-SRC		+= cmd.c
+#SRC		+= cmd.c
 SRC		+= encoder.c
 SRC		+= motor.c
 

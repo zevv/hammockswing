@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <avr/sleep.h>
 #include <ctype.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
@@ -16,18 +17,36 @@
 
 void cmd_handle_char(uint8_t c);
 
+int main2(void)
+{
+	uart_init(UART_BAUD(19200), 1);
+	uart_enable();
+
+	uart_tx('\n');
+
+	motor_init();
+	motor_set(18);
+	sei();
+
+	for(;;) {
+		_delay_ms(10);
+		motor_tick_100hz();
+		uart_tx('a');
+	}
+
+
+
+}
+
 
 int main(void)
 {
-	wdt_disable();
 
-	uart_init(UART_BAUD(9600), 1);
+	uart_init(UART_BAUD(19200), 1);
 	uart_enable();
 	timer_init();
 	motor_init();
 	encoder_init();
-
-	wdt_disable();
 
 	sei();
 
@@ -41,17 +60,14 @@ int main(void)
 	if(m & (1<<PORF))   printf("PORF\n");
 	MCUSR = 0;
 
-
 	int state = 0;
 	int n = 0;
 	int t = 0;
 
-	//int high = 64;
-	//int low = 10;
-	//
-	
-	motor_set(64);
+	motor_set(35);
 	state = 1;
+
+	wdt_enable(WDTO_1S);
 
 	for(;;) {
 		wdt_reset();
@@ -61,13 +77,10 @@ int main(void)
 
 		if(ev.type == EV_UART) {
 			//cmd_handle_char(ev.uart.c);
-			if(ev.uart.c == 3) {
-				wdt_enable(WDTO_15MS);
-				for(;;);
-			}
 		}
 		
 		if(ev.type == EV_TICK_1HZ) {
+			printf("1\n");
 		}
 
 		if(ev.type == EV_TICK_10HZ) {
@@ -79,10 +92,9 @@ int main(void)
 		if(ev.type == EV_ENCODER) {
 
 			t += 1;
-
 			n += abs(ev.encoder.speed);
-			printf("%d n=%d t=%d s=%d\n", state, n, t, (int)ev.encoder.speed);
 
+			printf("%d n=%d t=%d s=%d m=%d\n", state, n, t, (int)ev.encoder.speed, OCR1A);
 
 			if(state == 0) {
 

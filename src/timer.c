@@ -1,12 +1,11 @@
 #include <avr/io.h>
+#include <stdio.h>
 #include <avr/interrupt.h>
 
 #include "timer.h"
 #include "event.h"
 #include "encoder.h"
 #include "motor.h"
-
-uint16_t jiffies = 0;
 
 /* 
  * Timer tick handlers are defined in main.c 
@@ -25,34 +24,28 @@ extern void timer_isr_1hz(void);
 
 void timer_init(void)
 {
-	/* Fast PWM mode, 1Khz, enable interrupt on overflow */
-
 	TCCR0A = (1<<COM0B1) | (1<<WGM01) | (1<<WGM00);
 	TCCR0B = (1<<CS01) | (1<<CS00);
 	TIMSK0 |= (1<<TOIE0);
-
 }
 
 
 /*
- * Timer0 overflow interrupt @ 1Khz
+ * Timer0 overflow interrupt @ 500 Hz
  */
 
 ISR(TIMER0_OVF_vect)
 {
+
 	static uint8_t t100 = 0;
 	static uint8_t t10 = 0;
 	static uint8_t t1 = 0;
-		
-	cli();
-	jiffies ++;
-	sei();
 
 	timer_isr_1000hz();
 
 	if(t100-- == 0) {
 		timer_isr_100hz();
-		t100 = 9;
+		t100 = 4;
 
 		if(t10-- == 0) {
 			timer_isr_10hz();
@@ -69,7 +62,6 @@ ISR(TIMER0_OVF_vect)
 
 void timer_isr_1000hz(void)
 {
-	motor_tick_1000hz();
 }
 
 
@@ -77,9 +69,9 @@ void timer_isr_100hz(void)
 {
 	motor_tick_100hz();
 
-	event_t ev;
-	ev.type = EV_TICK_100HZ;
-	event_push(&ev);
+//	event_t ev;
+//	ev.type = EV_TICK_100HZ;
+//	event_push(&ev);
 }
 
 
