@@ -27,7 +27,7 @@ int speed = 0;
 
 void motor_set(int s)
 {
-	if(s == 0) {
+	if(0 && s == 0) {
 		speed_req = 0;
 		speed = 0;
 		OCR1A = 0;
@@ -41,21 +41,18 @@ void motor_set(int s)
 void motor_tick_100hz(void)
 {
 	int d = speed_req - speed;
-	if(d < -1) d = -1;
-	if(d >  1) d =  1;
+	int s = 3;
+	if(d < -s) d = -s;
+	if(d >  s) d =  s;
 	speed += d;
 
 	OCR1A = speed;
-}
 
-
-void motor_cmd(uint8_t argc, char **argv)
-{
-	if(argc > 0) {
-		int v = atoi(argv[0]);
-		motor_set(v);
+	if(speed > 0) {
+		TCCR1A |= (1<<COM1A1);
+	} else {
+		TCCR1A &= ~(1<<COM1A1);
 	}
 }
-
 
 

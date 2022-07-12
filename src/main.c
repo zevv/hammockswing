@@ -43,7 +43,6 @@ int main(void)
 {
 
 	uart_init(UART_BAUD(19200), 1);
-	uart_enable();
 	timer_init();
 	motor_init();
 	encoder_init();
@@ -51,9 +50,7 @@ int main(void)
 	sei();
 
 	printf("---\n");
-
 	uint8_t m = MCUSR;
-	if(m & (1<<WDRF))   printf("WDRF\n");
 	if(m & (1<<WDRF))   printf("WDRF\n");
 	if(m & (1<<BORF))   printf("BORF\n");
 	if(m & (1<<EXTRF))  printf("EXTR\n");
@@ -67,7 +64,7 @@ int main(void)
 	motor_set(35);
 	state = 1;
 
-	wdt_enable(WDTO_1S);
+	wdt_enable(WDTO_120MS);
 
 	for(;;) {
 		wdt_reset();
@@ -80,7 +77,6 @@ int main(void)
 		}
 		
 		if(ev.type == EV_TICK_1HZ) {
-			printf("1\n");
 		}
 
 		if(ev.type == EV_TICK_10HZ) {
@@ -98,7 +94,7 @@ int main(void)
 
 			if(state == 0) {
 
-				if(t > 2 && n > 10 && ev.encoder.speed == 0) {
+				if(t > 2 && n > 10 && ev.encoder.speed >= 0) {
 					motor_set(64);
 					n = 0;
 					t = 0;
