@@ -27,7 +27,7 @@ int speed = 0;
 
 void motor_set(int s)
 {
-	if(0 && s == 0) {
+	if(s == 0) {
 		speed_req = 0;
 		speed = 0;
 		OCR1A = 0;
@@ -41,7 +41,7 @@ void motor_set(int s)
 void motor_tick_100hz(void)
 {
 	int d = speed_req - speed;
-	int s = 3;
+	int s = 2;
 	if(d < -s) d = -s;
 	if(d >  s) d =  s;
 	speed += d;

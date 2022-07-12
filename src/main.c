@@ -113,11 +113,11 @@ int main(void)
 
 			}
 
-			if(t > 16) {
+			if(t > 20) {
 				motor_set(0);
 			}
 				
-			if(abs(n) > 150) {
+			if(abs(n) > 200) {
 				motor_set(0);
 			}
 
