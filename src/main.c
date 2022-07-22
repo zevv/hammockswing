@@ -19,6 +19,7 @@ void cmd_handle_char(uint8_t c);
 
 
 enum state {
+	STATE_INIT = 1,
 	STATE_PULL_START,
 	STATE_PULL_END,
 	STATE_SWING_START,
@@ -36,6 +37,7 @@ int h = 100;
 
 
 
+void init_to();
 void pull_start_to();
 void pull_end_to();
 void swing_start_to();
@@ -48,11 +50,27 @@ void to(enum state s)
 		state = s;
 		t = 0;
 
+		if(state == STATE_INIT) init_to();
 		if(state == STATE_PULL_START) pull_start_to();
 		if(state == STATE_PULL_END) pull_end_to();
 		if(state == STATE_SWING_START) swing_start_to();
 		if(state == STATE_SWING_END) swing_end_to();
 		if(state == STATE_POWERDOWN) swing_powerdown_to();
+	}
+}
+
+
+void init_to(void)
+{
+	printf("\ninit\n\n");
+	motor_set(32);
+}
+
+
+void init_do(int speed)
+{
+	if(t > 20) {
+		to(STATE_SWING_END);
 	}
 }
 
@@ -69,6 +87,7 @@ void pull_start_do(int speed)
 		to(STATE_PULL_END);
 	}
 }
+
 
 void pull_end_to()
 {
@@ -125,7 +144,7 @@ void swing_powerdown_to()
 
 void powerdown_do(int speed)
 {
-	if(speed != 0) {
+	if(n >= 20) {
 		to(STATE_SWING_END);
 	}
 }
@@ -147,12 +166,9 @@ int main(void)
 	if(m & (1<<PORF))   printf("PORF\n");
 	MCUSR = 0;
 
-
-	motor_set(40);
-	state = STATE_PULL_END;
-
 	wdt_enable(WDTO_120MS);
 
+	to(STATE_INIT);
 
 	for(;;) {
 		wdt_reset();
@@ -188,6 +204,7 @@ int main(void)
 
 			int speed = ev.encoder.speed;
 
+			if(state == STATE_INIT) init_do(speed);
 			if(state == STATE_PULL_START) pull_start_do(speed);
 			if(state == STATE_PULL_END) pull_end_do(speed);
 			if(state == STATE_SWING_START) swing_start_do(speed);
