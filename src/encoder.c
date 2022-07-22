@@ -11,19 +11,11 @@ static volatile int32_t count = 0;
 
 void encoder_init(void)
 {
-	/* Set FAN pulse pins to input, pullup enabled */
-
-	PORTD |= (1<<PD7) | (1<<PD6);
-
 	/* Configure pin change interrupt */
 
 	PCICR |= (1<<PCIE2);
-	PCMSK2 |= (1<<PCINT22);
+	PCMSK2 |= (1<<PCINT18);
 
-	/* Enable power for hall sensor */
-
-	DDRB |= (1<<PB2);
-	PORTB |= (1<<PB2);
 }
 
 
@@ -42,8 +34,8 @@ void encoder_tick_10hz(void)
 
 ISR(PCINT2_vect)
 {
-	if(PIND & (1<<PD6)) {
-		if(PIND & (1<<PD7)) {
+	if(PIND & (1<<PD3)) {
+		if(PIND & (1<<PD2)) {
 			count ++;
 		} else {
 			count --;

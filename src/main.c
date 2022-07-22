@@ -41,7 +41,6 @@ int main2(void)
 
 int main(void)
 {
-
 	uart_init(UART_BAUD(19200), 1);
 	timer_init();
 	motor_init();

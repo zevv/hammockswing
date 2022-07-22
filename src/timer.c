@@ -62,6 +62,7 @@ ISR(TIMER0_OVF_vect)
 
 void timer_isr_1000hz(void)
 {
+	//motor_tick_1000hz();
 }
 
 

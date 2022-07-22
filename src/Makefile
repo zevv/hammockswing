@@ -27,9 +27,9 @@ SRC		+= motor.c
 
 CROSS		+= avr-
 CFLAGS  	+= -DF_CPU=8000000
-CFLAGS  	+= -mmcu=atmega328p -Os -I. -fshort-enums 
+CFLAGS  	+= -mmcu=atmega88 -Os -I. -fshort-enums 
 CFLAGS  	+= -DVERSION_GIT=\"$(VERSION_GIT)$(GITMODIFIED)\"
-LDFLAGS 	+= -mmcu=atmega328p 
+LDFLAGS 	+= -mmcu=atmega88 
 
 default: $(BIN) 
 
@@ -43,7 +43,7 @@ CFLAGS  	+= -Wall -Werror
 CFLAGS  	+= -MMD
 LDFLAGS 	+= -g
 CFLAGS  	+= -DNAME=\"$(NAME)\" -DVERSION=\"$(VERSION)\"
-ADFLAGS 	+= -p m328p -c avrispv2 -P usb -V -F -s
+ADFLAGS 	+= -p m88 -c avrispv2 -P usb -V -F -s
 #ADFLAGS 	+= -p m328p -c stk500v1 -P /dev/ttyUSB0 -V -F -s
 
 ifdef ccache
