@@ -21,34 +21,38 @@ void motor_init(void)
 }
 
 
-int speed_req = 0;
-int speed = 0;
+float power_cur = 0;
+float power_req = 0;
+float power_delta = 0;
 
 
-void motor_set(int s)
+void motor_set(int req)
 {
-	if(s == 0) {
-		speed_req = 0;
-		speed = 0;
-		OCR1A = 0;
-	} else {
-		speed_req = s;
-	}
+	power_cur = req;
+	power_req = req;
+	power_delta = 0;
+}
+
+void motor_goto(int req, float dt)
+{
+	power_req = req;
+	power_delta = (power_req - power_cur) / dt * 0.01;
 }
 
 
 
 void motor_tick_100hz(void)
 {
-	int d = speed_req - speed;
-	int s = 2;
-	if(d < -s) d = -s;
-	if(d >  s) d =  s;
-	speed += d;
+	if(power_delta > 0 && power_cur < power_req) {
+		power_cur += power_delta;
+	}
 
-	OCR1A = speed;
+	if(power_delta < 0 && power_cur > power_req) {
+		power_cur += power_delta;
+	}
 
-	if(speed > 0) {
+	if(power_cur > 0) {
+		OCR1A = power_cur;
 		TCCR1A |= (1<<COM1A1);
 	} else {
 		TCCR1A &= ~(1<<COM1A1);

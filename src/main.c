@@ -17,27 +17,118 @@
 
 void cmd_handle_char(uint8_t c);
 
-int main2(void)
+
+enum state {
+	STATE_PULL_START,
+	STATE_PULL_END,
+	STATE_SWING_START,
+	STATE_SWING_END,
+	STATE_POWERDOWN,
+};
+
+
+enum state state;
+int power_max = 64; // how high?
+int power_min = 32; // just enough to keep running
+int n = 0;
+int t = 0;
+int h = 100;
+
+
+
+void pull_start_to();
+void pull_end_to();
+void swing_start_to();
+void swing_end_to();
+void swing_powerdown_to();
+
+void to(enum state s)
 {
-	uart_init(UART_BAUD(19200), 1);
-	uart_enable();
+	if(state != s) {
+		state = s;
+		t = 0;
 
-	uart_tx('\n');
-
-	motor_init();
-	motor_set(18);
-	sei();
-
-	for(;;) {
-		_delay_ms(10);
-		motor_tick_100hz();
-		uart_tx('a');
+		if(state == STATE_PULL_START) pull_start_to();
+		if(state == STATE_PULL_END) pull_end_to();
+		if(state == STATE_SWING_START) swing_start_to();
+		if(state == STATE_SWING_END) swing_end_to();
+		if(state == STATE_POWERDOWN) swing_powerdown_to();
 	}
-
-
-
 }
 
+
+void pull_start_to()
+{
+	n = 0;
+}
+
+void pull_start_do(int speed)
+{
+	// reduce power before reaching stall
+	if(n > h) {
+		to(STATE_PULL_END);
+	}
+}
+
+void pull_end_to()
+{
+	motor_goto(power_min, 0.3);
+}
+
+void pull_end_do(int speed)
+{
+	// detected stall, reverse
+	if(n > 10 && speed <= 0) {
+		h = n * 0.9;
+		to(STATE_SWING_START);
+	}
+}
+
+void swing_start_to()
+{
+	n = 0;
+	motor_set(0);
+}
+
+void swing_start_do(int speed)
+{
+	// Almost end of swing reached
+	if(n > h) {
+		to(STATE_SWING_END);
+	}
+}
+
+void swing_end_to()
+{
+	// start pulling
+	motor_set(power_min);
+	motor_goto(power_max, 0.5);
+}
+
+void swing_end_do(int speed)
+{
+	// detected stall, reverse
+	if(t > 2 && n > 10 && speed >= 0) {
+		h = n * 0.8;
+		to(STATE_PULL_START);
+	}
+}
+
+
+void swing_powerdown_to()
+{
+	printf("\npowerdown\n");
+	motor_set(0);
+	n = 0;
+}
+
+
+void powerdown_do(int speed)
+{
+	if(speed != 0) {
+		to(STATE_SWING_END);
+	}
+}
 
 int main(void)
 {
@@ -56,14 +147,12 @@ int main(void)
 	if(m & (1<<PORF))   printf("PORF\n");
 	MCUSR = 0;
 
-	int state = 0;
-	int n = 0;
-	int t = 0;
 
-	motor_set(35);
-	state = 1;
+	motor_set(40);
+	state = STATE_PULL_END;
 
 	wdt_enable(WDTO_120MS);
+
 
 	for(;;) {
 		wdt_reset();
@@ -89,35 +178,30 @@ int main(void)
 			t += 1;
 			n += abs(ev.encoder.speed);
 
-			printf("%d n=%d t=%d s=%d m=%d\n", state, n, t, (int)ev.encoder.speed, OCR1A);
+			extern float power_cur;
+			extern float power_req;
 
-			if(state == 0) {
+			printf("%d n=%3d h=%3d t=3%d s=%+3d  cur=%2d req=%2d\n", 
+					state, n, h, t, (int)ev.encoder.speed,
+					(int)power_cur,
+					(int)power_req);
 
-				if(t > 2 && n > 10 && ev.encoder.speed >= 0) {
-					motor_set(64);
-					n = 0;
-					t = 0;
-					state = 1;
-				}
-			}
+			int speed = ev.encoder.speed;
 
-			else if(state == 1) {
-
-				if(n > 10 && ev.encoder.speed <= 0) {
-					motor_set(0);
-					n = 0;
-					t = 0;
-					state = 0;
-				}
-
-			}
-
+			if(state == STATE_PULL_START) pull_start_do(speed);
+			if(state == STATE_PULL_END) pull_end_do(speed);
+			if(state == STATE_SWING_START) swing_start_do(speed);
+			if(state == STATE_SWING_END) swing_end_do(speed);
+			if(state == STATE_POWERDOWN) powerdown_do(speed);
+			
+			// abort if running too long
 			if(t > 20) {
-				motor_set(0);
+				to(STATE_POWERDOWN);
 			}
-				
-			if(abs(n) > 300) {
-				motor_set(0);
+			
+			// abort if running too far
+			if(abs(n) > 350) {
+				to(STATE_POWERDOWN);
 			}
 
 		}
@@ -128,4 +212,3 @@ int main(void)
 void motor_pid(uint8_t argc, char **argv)
 {
 }
-
