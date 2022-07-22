@@ -40,8 +40,6 @@ ISR(TIMER0_OVF_vect)
 	static uint8_t t10 = 0;
 	static uint8_t t1 = 0;
 
-	timer_isr_1000hz();
-
 	if(t100-- == 0) {
 		timer_isr_100hz();
 		t100 = 4;

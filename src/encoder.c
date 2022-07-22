@@ -32,9 +32,9 @@ void encoder_tick_10hz(void)
 ISR(INT0_vect)
 {
 	if(PIND & (1<<PD3)) {
-		count ++;
-	} else {
 		count --;
+	} else {
+		count ++;
 	}
 }
 

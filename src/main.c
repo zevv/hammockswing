@@ -32,11 +32,12 @@ enum state {
 
 
 enum state state;
+//int power_max = 64;
 int power_max = 64;
 int power_min = 38; // just enough to keep running
 int n = 0;
 int t = 0;
-int h = 100;
+int h = 0;
 
 
 
@@ -86,6 +87,7 @@ void to(enum state s)
 
 void init_to(void)
 {
+	h = 10;
 	motor_set(power_min);
 }
 
@@ -93,6 +95,7 @@ void init_to(void)
 void init_do(int speed)
 {
 	if(t > 20) {
+		n = 0;
 		to(STATE_SWING_END);
 	}
 }
@@ -163,7 +166,7 @@ void idle_to()
 
 void idle_do(int speed)
 {
-	if(t > 20 && n >= 100) {
+	if(t > 20 && n >= 20) {
 		to(STATE_INIT);
 	}
 }
@@ -217,10 +220,12 @@ int main(void)
 			extern float power_cur;
 			extern float power_req;
 
-			printf("%d n=%3d h=%3d t=%3d s=%+3d  cur=%2d req=%2d\n", 
-					state, n, h, t, (int)ev.encoder.speed,
-					(int)power_cur,
-					(int)power_req);
+			if(state != STATE_IDLE) {
+				printf("%d n=%3d h=%3d t=%3d s=%+3d  cur=%2d req=%2d\n", 
+						state, n, h, t, (int)ev.encoder.speed,
+						(int)power_cur,
+						(int)power_req);
+			}
 
 			state_list[state].fn_do(ev.encoder.speed);
 			
