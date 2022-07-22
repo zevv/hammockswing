@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <avr/sleep.h>
 #include <ctype.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <avr/wdt.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include "uart.h"
 #include "event.h"
@@ -24,13 +26,14 @@ enum state {
 	STATE_PULL_END,
 	STATE_SWING_START,
 	STATE_SWING_END,
+	STATE_IDLE,
 	STATE_POWERDOWN,
 };
 
 
 enum state state;
-int power_max = 64; // how high?
-int power_min = 32; // just enough to keep running
+int power_max = 64;
+int power_min = 38; // just enough to keep running
 int n = 0;
 int t = 0;
 int h = 100;
@@ -42,28 +45,48 @@ void pull_start_to();
 void pull_end_to();
 void swing_start_to();
 void swing_end_to();
-void swing_powerdown_to();
+void idle_to();
+
+void init_do(int speed);
+void pull_start_do(int speed);
+void pull_end_do(int speed);
+void swing_start_do(int speed);
+void swing_end_do(int speed);
+void idle_do(int speed);
+
+
+struct state_info {
+	const char *name;
+	void (*fn_to)(void);
+	void (*fn_do)(int speed);
+	bool clearn;
+} state_list[] = {
+	[STATE_INIT]        = { "init",        init_to,         init_do,         true,  },
+	[STATE_PULL_START]  = { "pull_start",  pull_start_to,   pull_start_do,   true,  },
+	[STATE_PULL_END]    = { "pull_end",    pull_end_to,     pull_end_do,     false, },
+	[STATE_SWING_START] = { "swing_start", swing_start_to,  swing_start_do,  true,  },
+	[STATE_SWING_END]   = { "swing_end",   swing_end_to,    swing_end_do,    false, },
+	[STATE_IDLE]        = { "idle",        idle_to,         idle_do,         true,  },
+};
 
 void to(enum state s)
 {
 	if(state != s) {
 		state = s;
+		struct state_info *si = &state_list[state];
+		if(si->clearn) {
+			n = 0;
+		}
 		t = 0;
-
-		if(state == STATE_INIT) init_to();
-		if(state == STATE_PULL_START) pull_start_to();
-		if(state == STATE_PULL_END) pull_end_to();
-		if(state == STATE_SWING_START) swing_start_to();
-		if(state == STATE_SWING_END) swing_end_to();
-		if(state == STATE_POWERDOWN) swing_powerdown_to();
+		printf("-> %s\n", si->name);
+		si->fn_to();
 	}
 }
 
 
 void init_to(void)
 {
-	printf("\ninit\n\n");
-	motor_set(32);
+	motor_set(power_min);
 }
 
 
@@ -77,7 +100,6 @@ void init_do(int speed)
 
 void pull_start_to()
 {
-	n = 0;
 }
 
 void pull_start_do(int speed)
@@ -105,7 +127,6 @@ void pull_end_do(int speed)
 
 void swing_start_to()
 {
-	n = 0;
 	motor_set(0);
 }
 
@@ -134,20 +155,19 @@ void swing_end_do(int speed)
 }
 
 
-void swing_powerdown_to()
+void idle_to()
 {
-	printf("\npowerdown\n");
 	motor_set(0);
-	n = 0;
 }
 
 
-void powerdown_do(int speed)
+void idle_do(int speed)
 {
-	if(n >= 20) {
-		to(STATE_SWING_END);
+	if(t > 20 && n >= 100) {
+		to(STATE_INIT);
 	}
 }
+
 
 int main(void)
 {
@@ -197,28 +217,21 @@ int main(void)
 			extern float power_cur;
 			extern float power_req;
 
-			printf("%d n=%3d h=%3d t=3%d s=%+3d  cur=%2d req=%2d\n", 
+			printf("%d n=%3d h=%3d t=%3d s=%+3d  cur=%2d req=%2d\n", 
 					state, n, h, t, (int)ev.encoder.speed,
 					(int)power_cur,
 					(int)power_req);
 
-			int speed = ev.encoder.speed;
-
-			if(state == STATE_INIT) init_do(speed);
-			if(state == STATE_PULL_START) pull_start_do(speed);
-			if(state == STATE_PULL_END) pull_end_do(speed);
-			if(state == STATE_SWING_START) swing_start_do(speed);
-			if(state == STATE_SWING_END) swing_end_do(speed);
-			if(state == STATE_POWERDOWN) powerdown_do(speed);
+			state_list[state].fn_do(ev.encoder.speed);
 			
 			// abort if running too long
 			if(t > 20) {
-				to(STATE_POWERDOWN);
+				to(STATE_IDLE);
 			}
 			
 			// abort if running too far
 			if(abs(n) > 350) {
-				to(STATE_POWERDOWN);
+				to(STATE_IDLE);
 			}
 
 		}

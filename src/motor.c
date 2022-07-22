@@ -31,6 +31,11 @@ void motor_set(int req)
 	power_cur = req;
 	power_req = req;
 	power_delta = 0;
+
+	if(req == 0) {
+		TCCR1A &= ~(1<<COM1A1);
+	}
+
 }
 
 void motor_goto(int req, float dt)

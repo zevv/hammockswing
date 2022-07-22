@@ -11,11 +11,8 @@ static volatile int32_t count = 0;
 
 void encoder_init(void)
 {
-	/* Configure pin change interrupt */
-
-	PCICR |= (1<<PCIE2);
-	PCMSK2 |= (1<<PCINT18);
-
+	EICRA |= (1<<ISC01);
+	EIMSK |= (1<<INT0);
 }
 
 
@@ -32,14 +29,12 @@ void encoder_tick_10hz(void)
 
 
 
-ISR(PCINT2_vect)
+ISR(INT0_vect)
 {
 	if(PIND & (1<<PD3)) {
-		if(PIND & (1<<PD2)) {
-			count ++;
-		} else {
-			count --;
-		}
+		count ++;
+	} else {
+		count --;
 	}
 }
 

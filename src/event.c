@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include "event.h"
 
@@ -11,15 +12,6 @@ struct evq {
 };
 
 static volatile struct evq evq;
-
-
-void idle(void)
-{
-#ifdef SIM
-	void sim_idle(void);
-	sim_idle();
-#endif
-}
 
 
 void event_init(void)
@@ -56,7 +48,9 @@ uint8_t event_pop(event_t *ev)
 
 void event_wait(event_t *ev)
 {
-	while(evq.head == evq.tail) idle();
+	while(evq.head == evq.tail) {
+		set_sleep_mode(SLEEP_MODE_IDLE);
+	}
 	event_pop(ev);
 }
 

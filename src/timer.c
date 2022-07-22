@@ -11,7 +11,6 @@
  * Timer tick handlers are defined in main.c 
  * */
 
-extern void timer_isr_1000hz(void);
 extern void timer_isr_100hz(void);
 extern void timer_isr_10hz(void);
 extern void timer_isr_1hz(void);
@@ -60,10 +59,6 @@ ISR(TIMER0_OVF_vect)
 }
 
 
-void timer_isr_1000hz(void)
-{
-	//motor_tick_1000hz();
-}
 
 
 void timer_isr_100hz(void)
