@@ -32,7 +32,6 @@ enum state {
 
 
 enum state state;
-//int power_max = 64;
 int power_max = 64;
 int power_min = 38; // just enough to keep running
 int n = 0;
@@ -88,16 +87,13 @@ void to(enum state s)
 void init_to(void)
 {
 	h = 10;
-	motor_set(power_min);
+	n = 0;
+	to(STATE_SWING_END);
 }
 
 
 void init_do(int speed)
 {
-	if(t > 20) {
-		n = 0;
-		to(STATE_SWING_END);
-	}
 }
 
 
@@ -123,7 +119,7 @@ void pull_end_do(int speed)
 {
 	// detected stall, reverse
 	if(n > 10 && speed <= 0) {
-		h = n * 0.9;
+		h = n * 0.5;
 		to(STATE_SWING_START);
 	}
 }
@@ -144,8 +140,8 @@ void swing_start_do(int speed)
 void swing_end_to()
 {
 	// start pulling
-	motor_set(power_min);
-	motor_goto(power_max, 0.5);
+	motor_set(0);
+	motor_goto(power_max, 0.8);
 }
 
 void swing_end_do(int speed)
@@ -235,7 +231,7 @@ int main(void)
 			}
 			
 			// abort if running too far
-			if(abs(n) > 350) {
+			if(abs(n) > 500) {
 				to(STATE_IDLE);
 			}
 
