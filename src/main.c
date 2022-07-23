@@ -13,7 +13,7 @@
 #include "uart.h"
 #include "event.h"
 #include "timer.h"
-#include "cmd.h"
+#include "adc.h"
 #include "encoder.h"
 #include "motor.h"
 
@@ -34,9 +34,12 @@ enum state {
 enum state state;
 int power_max = 64;
 int power_min = 38; // just enough to keep running
+int power;
 int n = 0;
 int t = 0;
 int h = 0;
+int alpha = 0.5;
+int h_set = 100;
 
 
 
@@ -69,6 +72,27 @@ struct state_info {
 	[STATE_IDLE]        = { "idle",        idle_to,         idle_do,         true,  },
 };
 
+
+static void update_h(int hnew)
+{
+	// low pass filter h
+	float alpha = 0.5;
+	h = h * alpha + hnew * (1 - alpha);
+
+	// read requested height from AD converter
+	float ctl = adc_read(2) / 1024.0;
+	h_set = 50 + ctl * 200;
+
+	// calcute error and adjust power
+	int e = (h_set - h) * 0.1;
+	power += e;
+	if(power < power_min) power = power_min;
+	if(power > power_max) power = power_max;
+
+	printf("h=%3d hset=%3d p=%3d adc=%d\n", h, h_set, power, adc_read(2));
+}
+
+
 void to(enum state s)
 {
 	if(state != s) {
@@ -86,6 +110,7 @@ void to(enum state s)
 
 void init_to(void)
 {
+	power = power_max;
 	h = 10;
 	n = 0;
 	to(STATE_SWING_END);
@@ -104,7 +129,7 @@ void pull_start_to()
 void pull_start_do(int speed)
 {
 	// reduce power before reaching stall
-	if(n > h) {
+	if(n > h * 0.8) {
 		to(STATE_PULL_END);
 	}
 }
@@ -117,9 +142,8 @@ void pull_end_to()
 
 void pull_end_do(int speed)
 {
-	// detected stall, reverse
 	if(n > 10 && speed <= 0) {
-		h = n * 0.5;
+		update_h(n);
 		to(STATE_SWING_START);
 	}
 }
@@ -131,15 +155,13 @@ void swing_start_to()
 
 void swing_start_do(int speed)
 {
-	// Almost end of swing reached
-	if(n > h) {
+	if(n > h * 0.5) {
 		to(STATE_SWING_END);
 	}
 }
 
 void swing_end_to()
 {
-	// start pulling
 	motor_set(0);
 	motor_goto(power_max, 0.8);
 }
@@ -148,7 +170,7 @@ void swing_end_do(int speed)
 {
 	// detected stall, reverse
 	if(t > 2 && n > 10 && speed >= 0) {
-		h = n * 0.8;
+		update_h(n);
 		to(STATE_PULL_START);
 	}
 }
@@ -163,7 +185,7 @@ void idle_to()
 void idle_do(int speed)
 {
 	if(t > 20 && n >= 20) {
-		to(STATE_INIT);
+		to(STATE_SWING_END);
 	}
 }
 
@@ -174,6 +196,7 @@ int main(void)
 	timer_init();
 	motor_init();
 	encoder_init();
+	adc_init();
 
 	sei();
 
@@ -216,7 +239,7 @@ int main(void)
 			extern float power_cur;
 			extern float power_req;
 
-			if(state != STATE_IDLE) {
+			if(0 && state != STATE_IDLE) {
 				printf("%d n=%3d h=%3d t=%3d s=%+3d  cur=%2d req=%2d\n", 
 						state, n, h, t, (int)ev.encoder.speed,
 						(int)power_cur,
