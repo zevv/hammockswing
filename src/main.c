@@ -73,6 +73,10 @@ struct state_info {
 };
 
 
+float pid_P = 0.3;
+float pid_I = 0.3;
+float I = 0.0;
+
 static void update_h(int hnew)
 {
 	// low pass filter h
@@ -81,15 +85,22 @@ static void update_h(int hnew)
 
 	// read requested height from AD converter
 	float ctl = adc_read(2) / 1024.0;
-	h_set = 50 + ctl * 200;
+	h_set = 75 + ctl * ctl * 150;
 
 	// calcute error and adjust power
-	int e = (h_set - h) * 0.1;
-	power += e;
+	float e = h_set - h;
+	I += e;
+
+	power = (power_min + power_max) * 0.5 +
+		    e * pid_P +
+			I * pid_I;
+
+	if(I < -15) I = -15;
+	if(I > +15) I = +15;
 	if(power < power_min) power = power_min;
 	if(power > power_max) power = power_max;
 
-	printf("h=%3d hset=%3d p=%3d adc=%d\n", h, h_set, power, adc_read(2));
+	printf("h=%3d hset=%3d p=%3d I=%d\n", h, h_set, power, (int)I);
 }
 
 
@@ -163,7 +174,7 @@ void swing_start_do(int speed)
 void swing_end_to()
 {
 	motor_set(0);
-	motor_goto(power_max, 0.8);
+	motor_goto(power, 0.8);
 }
 
 void swing_end_do(int speed)
